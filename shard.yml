@@ -1,0 +1,12 @@
+name: kemal-session-file
+version: 0.1.0
+
+dependencies:
+  kemal-session:
+    github: sdogruyol/kemal-session
+    branch: master
+
+authors:
+  - Serdar Dogruyol <dogruyolserdar@gmail.com>
+
+license: MIT
