@@ -10,13 +10,13 @@ Add this to your application's `shard.yml`:
 ```yaml
 dependencies:
   kemal-session-file:
-    github: sdogruyol/kemal-session-file
+    github: kemalcr/kemal-session-file
 ```
 
 
 ## Usage
 
-Be sure that the session path folder is writable by the user.
+Be sure that the session path folder is ***writable*** by the user.
 
 ```crystal
 require "kemal"
@@ -28,10 +28,9 @@ Kemal.run
 ```
 
 
-
 ## Contributing
 
-1. Fork it ( https://github.com/sdogruyol/kemal-session-file/fork )
+1. Fork it ( https://github.com/kemalcr/kemal-session-file/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)

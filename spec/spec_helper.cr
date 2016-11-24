@@ -11,7 +11,7 @@ Spec.after_each do
 end
 
 def create_context(session_id : String)
-  response = HTTP::Server::Response.new(MemoryIO.new)
+  response = HTTP::Server::Response.new(IO::Memory.new)
   headers = HTTP::Headers.new
 
   # I would rather pass nil if no cookie should be created

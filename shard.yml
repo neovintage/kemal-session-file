@@ -1,9 +1,9 @@
 name: kemal-session-file
-version: 0.1.0
+version: 0.2.0
 
 dependencies:
   kemal-session:
-    github: sdogruyol/kemal-session
+    github: kemalcr/kemal-session
     branch: master
 
 authors:
