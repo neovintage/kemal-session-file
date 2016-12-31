@@ -116,8 +116,7 @@ class Session
     end
 
     def session_exists?(session_id : String) : Bool
-      return true if File.file? @sessions_dir + session_id + ".json"
-      false
+      File.file? @sessions_dir + session_id + ".json"
     end
 
     def create_session(session_id : String)
@@ -131,7 +130,7 @@ class Session
 
     def destroy_session(session_id : String)
       if session_exists?(session_id)
-        File.delete(@session_dir + session_id + ".json")
+        File.delete(@sessions_dir + session_id + ".json")
       end
     end
 
@@ -157,7 +156,7 @@ class Session
     def each_session
       Dir.foreach(@sessions_dir) do |f|
         full_path = @sessions_dir + f
-        if File.fil? full_path
+        if File.file? full_path
           yield Session.new(File.basename(f, ".json"))
         end
       end
