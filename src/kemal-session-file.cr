@@ -3,12 +3,42 @@ require "kemal-session"
 
 class Session
   class FileSystemEngine < Engine
+    module StorableObjectConverter
+      def self.from_json(pull : JSON::PullParser) : Hash(String, StorableObject)
+        hash = Hash(String, StorableObject).new
+        pull.read_object do |key|
+          if pull.kind == :null
+            pull.read_next
+          else
+            hash[key] = StorableObject.unserialize(pull.read_string)
+          end
+        end
+        hash
+      end
+
+      def self.to_json(value : Hash(String, StorableObject), io : IO)
+        if value.empty?
+          io << "{}"
+          return
+        end
+
+        io.json_object do |json_obj|
+          value.each do |object_name, storable_obj|
+            json_obj.field object_name, storable_obj.serialize
+          end
+        end
+      end
+    end
+
     class StorageInstance
       macro define_storage(vars)
         JSON.mapping({
           {% for name, type in vars %}
-               {{name.id}}s: Hash(String, {{type}}),
+            {% if name != "object" %}
+              {{name.id}}s: Hash(String, {{type}}),
+            {% end %}
           {% end %}
+          objects: {type: Hash(String, StorableObject), converter: StorableObjectConverter},
         })
 
         {% for name, type in vars %}
@@ -35,7 +65,7 @@ class Session
         end
       end
 
-      define_storage({int: Int32, string: String, float: Float64, bool: Bool})
+      define_storage({int: Int32, string: String, float: Float64, bool: Bool, object: StorableObject})
     end
 
     @cache : StorageInstance
@@ -85,6 +115,54 @@ class Session
       end
     end
 
+    def session_exists?(session_id : String) : Bool
+      return true if File.file? @sessions_dir + session_id + ".json"
+      false
+    end
+
+    def create_session(session_id : String)
+      read_or_create_storage_instance(session_id)
+    end
+
+    def get_session(session_id : String)
+      return Session.new(session_id) if session_exists?(session_id)
+      nil
+    end
+
+    def destroy_session(session_id : String)
+      if session_exists?(session_id)
+        File.delete(@session_dir + session_id + ".json")
+      end
+    end
+
+    def destroy_all_sessions
+      Dir.foreach(@sessions_dir) do |f|
+        full_path = @sessions_dir + f
+        if File.file? full_path
+          File.delete full_path
+        end
+      end
+    end
+
+    def all_sessions
+      array = [] of Session
+
+      each_session do |session|
+        array << session
+      end
+
+      array
+    end
+
+    def each_session
+      Dir.foreach(@sessions_dir) do |f|
+        full_path = @sessions_dir + f
+        if File.fil? full_path
+          yield Session.new(File.basename(f, ".json"))
+        end
+      end
+    end
+
     # Delegating int(k,v), int?(k) etc. from Engine to StorageInstance
     macro define_delegators(vars)
       {% for name, type in vars %}
@@ -112,6 +190,6 @@ class Session
       {% end %}
     end
 
-    define_delegators({int: Int32, string: String, float: Float64, bool: Bool})
+    define_delegators({int: Int32, string: String, float: Float64, bool: Bool, object: StorableObject})
   end
 end
